@@ -2,17 +2,26 @@
 <html>
 <head>
 <title>Geolocation Test</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 </head>
 
 <body>
 <button onclick="getLocation()">Try It</button>
 
 <p id="position"></p>
+<p id="ipaddress"></p>
 
 </body>
 
 <script>
+var MAPQUESTAPIKEY = "3D2Af2waTyLvcyCnpx07VWejn7zXTjyz";
+var IPREGISTRYAPIKEY = "8t9vcgx66rfh7z7l";
+
 var x = document.getElementById("position");
+var y = document.getElementById("ipaddress");
+var myJSON = {};
+
+
 function getLocation() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(showPosition, showError);
@@ -24,13 +33,30 @@ function getLocation() {
 function showPosition(position) {
   x.innerHTML = "Latitude: " + position.coords.latitude +
   "<br>Longitude: " + position.coords.longitude;
+  // console.log($.getJSON('http://open.mapquestapi.com/geocoding/v1/reverse?key='+MAPQUESTAPIKEY+'&location='+position.coords.latitude+","+position.coords.longitude));
+  // console.log($.getJSON('http://open.mapquestapi.com/geocoding/v1/reverse?key='+MAPQUESTAPIKEY+'&location=30.333472,-81.470448'));
+
+  const obj = $.getJSON('http://open.mapquestapi.com/geocoding/v1/reverse?key='+MAPQUESTAPIKEY+'&location='+position.coords.latitude+","+position.coords.longitude);
+
+
+  $.getJSON('http://open.mapquestapi.com/geocoding/v1/reverse?key='+MAPQUESTAPIKEY+'&location='+position.coords.latitude+","+position.coords.longitude, function(data) {
+    const obj = JSON.stringify(data, null, 2);
+    var newJSON = JSON.parse(obj);
+    console.log(newJSON.results[0].locations[0].adminArea5);
+  });
+
+  // x.innerHTML = x.innerHTML + "<br>City: ";
+}
+
+function ipAddressReveal(myJSON) {
+  y.innerHTML = myJSON.location.city + ", " + myJSON.location.region.name;
 }
 
 function showError(error) {
   switch(error.code) {
     case error.PERMISSION_DENIED:
       x.innerHTML = "User denied the request for Geolocation."
-      getIPFromAmazon;
+      ipAddressReveal(myJSON);
       break;
     case error.POSITION_UNAVAILABLE:
       x.innerHTML = "Location information is unavailable."
@@ -44,12 +70,16 @@ function showError(error) {
   }
 }
 
-function getIPFromAmazon() {
-  fetch("https://checkip.amazonaws.com/").then(res => res.text()).then(data => console.log(data))
-}
+$.getJSON('https://api.ipregistry.co/?key='+IPREGISTRYAPIKEY, function(data) {
+  // console.log(JSON.stringify(data, null, 2));
+  const obj = JSON.stringify(data, null, 2);
+  // console.log(JSON.parse(obj));
+  myJSON = JSON.parse(obj);
+  console.log(myJSON.location.city + ", " + myJSON.location.region.name);
+});
 
 
-getIPFromAmazon()
+
 </script>
 
 </html>
